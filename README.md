@@ -10,7 +10,7 @@ Put the following in _Host.cshtml into the head section:
 </head>
 ```
 
-and the following just below your the router:
+and the following just below the router and don't forget to fill in your matomo url and site id:
 
 ```diff
            </LayoutView>
