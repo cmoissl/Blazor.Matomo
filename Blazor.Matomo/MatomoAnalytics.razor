@@ -1,0 +1,47 @@
+﻿@using Microsoft.JSInterop;
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.AspNetCore.Components.Routing;
+@using System.Security.Claims;
+@using Microsoft.AspNetCore.Components.Authorization;
+
+@inject NavigationManager navigationManager
+@inject IJSRuntime jsRuntime
+@inject AuthenticationStateProvider authenticationStateProvider;
+
+@code{
+    [Parameter]
+    public int SiteId { get; set; }
+    [Parameter]
+    public string ApiUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        navigationManager.LocationChanged -= OnLocationChanged;
+        navigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            await JsInterop.Init(jsRuntime, ApiUrl, SiteId);
+        }
+    }
+
+    public void Dispose()
+    {
+        this.navigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+    private async void OnLocationChanged(object sender, LocationChangedEventArgs args)
+    {
+        var b = await this.authenticationStateProvider.GetAuthenticationStateAsync();
+        var uid = b.User.FindFirst(ClaimTypes.NameIdentifier);
+
+        await JsInterop.TriggerPageView(jsRuntime, args.Location, uid?.Subject?.Name);
+    }
+
+}
